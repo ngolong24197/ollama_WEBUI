@@ -5,9 +5,10 @@ import { ChatMessage } from "./ChatMessage"
 interface ChatViewProps {
   messages: Message[]
   isStreaming: boolean
+  isLoading?: boolean
 }
 
-export function ChatView({ messages, isStreaming }: ChatViewProps) {
+export function ChatView({ messages, isStreaming, isLoading }: ChatViewProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const isNearBottomRef = useRef(true)
@@ -32,7 +33,7 @@ export function ChatView({ messages, isStreaming }: ChatViewProps) {
     }
   }, [messages])
 
-  if (messages.length === 0) {
+  if (messages.length === 0 && !isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center text-muted-foreground">
         <div className="text-center">
@@ -52,6 +53,17 @@ export function ChatView({ messages, isStreaming }: ChatViewProps) {
           isStreaming={isStreaming && msg === messages[messages.length - 1] && msg.role === "assistant"}
         />
       ))}
+      {isLoading && messages.length === 0 && (
+        <div className="flex gap-3 px-4 py-3 justify-start">
+          <div className="max-w-[80%] rounded-lg bg-card border border-border px-4 py-2">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse" />
+              <div className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse [animation-delay:0.2s]" />
+              <div className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse [animation-delay:0.4s]" />
+            </div>
+          </div>
+        </div>
+      )}
       <div ref={bottomRef} />
     </div>
   )
