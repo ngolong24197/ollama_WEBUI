@@ -25,6 +25,15 @@ def _format_search_context(results: list[dict[str, str]]) -> str:
     return "\n".join(lines)
 
 
+_SEARCH_SYSTEM_PROMPT = (
+    "You have access to web search results provided by the user. "
+    "Use the information from [Web Search Results] to answer the user's question. "
+    "Cite the source URLs when possible. "
+    "If the search results contain current information, use it even if it's newer than your training data. "
+    "If the search results don't contain relevant information, say so honestly."
+)
+
+
 async def _load_history(conversation_id: int) -> list[dict]:
     """Fetch previous messages for a conversation, ordered by id."""
     from sqlalchemy import select
@@ -109,6 +118,7 @@ async def process_chat(
     """Orchestrate a chat request: search, stream, and persist."""
     # --- optional web search ---
     effective_message = message
+    results: list[dict[str, str]] | None = None
     if enable_search:
         try:
             results = await search(message)
@@ -127,6 +137,8 @@ async def process_chat(
     messages: list[dict] = []
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
+    if enable_search and results:
+        messages.append({"role": "system", "content": _SEARCH_SYSTEM_PROMPT})
     messages.extend(history)
     user_msg: dict = {"role": "user", "content": effective_message}
     if image_urls:
