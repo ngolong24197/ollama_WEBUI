@@ -151,6 +151,8 @@ async def process_chat(
         user_msg["images"] = image_urls
     messages.append(user_msg)
 
+    logger.info("Sending %d messages to model=%s (search=%s, results=%d)", len(messages), model, enable_search, len(results) if results else 0)
+
     # --- stream from Ollama ---
     collected_parts: list[str] = []
     prompt_tokens = 0
