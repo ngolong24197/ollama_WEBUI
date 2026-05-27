@@ -1,0 +1,26 @@
+services:
+  chat-ui:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_URL=http://host.docker.internal:11434
+      - SEARXNG_URL=http://searxng:8080
+      - DATABASE_URL=sqlite+aiosqlite:///data/chat.db
+    volumes:
+      - chat_data:/app/data
+    restart: unless-stopped
+    depends_on:
+      - searxng
+
+  searxng:
+    image: searxng/searxng:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - searxng_data:/etc/searxng
+    restart: unless-stopped
+
+volumes:
+  chat_data:
+  searxng_data:
