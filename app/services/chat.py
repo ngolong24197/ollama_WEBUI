@@ -17,20 +17,26 @@ logger = logging.getLogger(__name__)
 
 def _format_search_context(results: list[dict[str, str]]) -> str:
     """Format search results into a context block prepended to the user message."""
-    lines: list[str] = ["[Web Search Results]"]
+    from datetime import date
+
+    lines: list[str] = [
+        f"[Web Search Results — retrieved on {date.today().isoformat()}]"
+    ]
     for idx, r in enumerate(results, start=1):
-        lines.append(f"{idx}. {r['title']} ({r['url']})")
+        lines.append(f"{idx}. {r['title']}")
+        lines.append(f"   URL: {r['url']}")
         lines.append(f"   {r['snippet']}")
     lines.append("[End of Search Results]")
     return "\n".join(lines)
 
 
 _SEARCH_SYSTEM_PROMPT = (
-    "You have access to web search results provided by the user. "
-    "Use the information from [Web Search Results] to answer the user's question. "
-    "Cite the source URLs when possible. "
-    "If the search results contain current information, use it even if it's newer than your training data. "
-    "If the search results don't contain relevant information, say so honestly."
+    "Today's date is provided in the search results header. "
+    "The [Web Search Results] block contains REAL, CURRENT information from the web. "
+    "You MUST use these results to answer the user's question — they are more up-to-date than your training data. "
+    "Always cite source URLs. "
+    "If the results contradict your training data, trust the search results. "
+    "If the results don't contain relevant information, say so honestly and answer from your training data with a caveat."
 )
 
 
