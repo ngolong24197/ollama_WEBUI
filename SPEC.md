@@ -113,10 +113,11 @@ Chat_UI/
 │   │   │   │   ├── ChatInput.tsx    # Input bar (text + attachments)
 │   │   │   │   ├── ChatView.tsx     # Message list + scroll
 │   │   │   │   ├── StreamingCursor.tsx # Animated streaming indicator
-│   │   │   │   └── TokenCounter.tsx # Token usage per conversation
+│   │   │   │   └── TokenCounter.tsx # Token count on each message
 │   │   │   ├── sidebar/
 │   │   │   │   ├── Sidebar.tsx      # Conversation list
-│   │   │   │   └── ConversationItem.tsx # Single conversation row
+│   │   │   │   ├── ConversationItem.tsx # Single conversation row (shows session token total)
+│   │   │   │   └── SessionTokenCount.tsx # Cumulative token count for conversation
 │   │   │   ├── settings/
 │   │   │   │   ├── ModelInput.tsx    # Model name input
 │   │   │   │   ├── SystemPrompt.tsx  # System prompt editor
@@ -288,7 +289,7 @@ cd frontend && npm run test -- --coverage
 10. **Export**: Can download a conversation as a `.docx` file with proper formatting
 11. **No file over 500 lines**: All files stay under 500 lines; shared components reused across the app
 12. **Docker**: `docker-compose up -d` starts the app + SearXNG; app is accessible at `localhost:8000`; works across laptop restarts
-13. **Token counter**: Each conversation shows a running token count (prompt tokens + completion tokens), updating live during streaming
+13. **Token counters**: Each message response shows its own token count (prompt + completion). The sidebar conversation overview shows a cumulative session total. Both update live during streaming.
 
 ## Resolved Questions
 
