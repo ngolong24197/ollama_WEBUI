@@ -96,6 +96,9 @@ export function useChat() {
           (errMsg) => {
             setError(errMsg)
             setCanRetry(true)
+          },
+          (id: number) => {
+            setConversationId(id)
           }
         )
 

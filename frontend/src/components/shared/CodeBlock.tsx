@@ -1,8 +1,18 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import hljs from "highlight.js";
+import "highlight.js/styles/github-dark.css";
 
 export function CodeBlock({ language, code }: { language: string; code: string }) {
   const [copied, setCopied] = useState(false);
+  const codeRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (codeRef.current) {
+      codeRef.current.removeAttribute("data-highlighted");
+      hljs.highlightElement(codeRef.current);
+    }
+  }, [language, code]);
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(code).then(() => {
@@ -23,7 +33,9 @@ export function CodeBlock({ language, code }: { language: string; code: string }
         </button>
       </div>
       <pre className="m-0 overflow-x-auto p-4">
-        <code className={cn(`language-${language}`, "text-sm leading-relaxed")}>{code}</code>
+        <code ref={codeRef} className={cn(`language-${language}`, "text-sm leading-relaxed")}>
+          {code}
+        </code>
       </pre>
     </div>
   );

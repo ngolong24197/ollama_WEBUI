@@ -1,11 +1,10 @@
 services:
   chat-ui:
     build: .
-    ports:
-      - "8000:8000"
+    network_mode: host
     environment:
-      - OLLAMA_URL=http://host.docker.internal:11434
-      - SEARXNG_URL=http://searxng:8080
+      - OLLAMA_URL=http://localhost:11434
+      - SEARXNG_URL=http://localhost:8080
       - DATABASE_URL=sqlite+aiosqlite:///data/chat.db
     volumes:
       - chat_data:/app/data
@@ -25,7 +24,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - searxng_data:/etc/searxng
+      - ./searxng/settings.yml:/etc/searxng/settings.yml:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/healthz"]
@@ -35,4 +34,3 @@ services:
 
 volumes:
   chat_data:
-  searxng_data:

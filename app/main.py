@@ -44,16 +44,26 @@ app.include_router(export.router)
 
 @app.get("/api/health")
 async def health_check():
-    from app.services.ollama import is_reachable
+    import httpx
 
-    ollama_ok = await is_reachable()
-    searxng_ok = False
+    from app.config import settings
+
+    ollama_ok = False
     try:
-        from app.services.search import search as search_web
-        await search_web("test")
-        searxng_ok = True
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(f"{settings.ollama_url}/api/tags", timeout=5.0)
+            ollama_ok = resp.status_code == 200
     except Exception:
         pass
+
+    searxng_ok = False
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(f"{settings.searxng_url}/healthz", timeout=5.0)
+            searxng_ok = resp.status_code == 200
+    except Exception:
+        pass
+
     return {"status": "ok", "ollama": ollama_ok, "searxng": searxng_ok}
 
 

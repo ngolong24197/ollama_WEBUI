@@ -39,7 +39,7 @@ export interface SearchResult {
 }
 
 export interface SSEEvent {
-  type: "token" | "done" | "error"
+  type: "token" | "done" | "error" | "conversation_id"
   data: string
 }
 
