@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { ImageAttach } from "@/components/attachments/ImageAttach"
 
@@ -10,6 +10,7 @@ interface ChatInputProps {
 export function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [input, setInput] = useState("")
   const [images, setImages] = useState<string[]>([])
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -33,18 +34,38 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
     [handleSubmit]
   )
 
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent) => {
+      const files = e.clipboardData.files
+      if (files.length > 0) {
+        e.preventDefault()
+        const file = files[0]
+        if (file.type.startsWith("image/")) {
+          const reader = new FileReader()
+          reader.onload = () => {
+            if (typeof reader.result === "string") {
+              setImages((prev) => [...prev, reader.result as string])
+            }
+          }
+          reader.readAsDataURL(file)
+        }
+      }
+    },
+    []
+  )
+
   return (
     <div className="border-t border-border p-4">
       <div className="max-w-4xl mx-auto space-y-2">
-        {images.length > 0 && (
-          <ImageAttach images={images} onImagesChange={setImages} />
-        )}
+        <ImageAttach images={images} onImagesChange={setImages} />
         <form onSubmit={handleSubmit} className="flex gap-2">
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Send a message..."
+            onPaste={handlePaste}
+            placeholder="Send a message... (paste or attach images)"
             disabled={disabled}
             rows={1}
             className={cn(

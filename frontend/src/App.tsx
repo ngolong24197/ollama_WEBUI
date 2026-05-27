@@ -6,7 +6,6 @@ import { Sidebar } from "@/components/sidebar/Sidebar"
 import { ModelInput } from "@/components/settings/ModelInput"
 import { SystemPrompt } from "@/components/settings/SystemPrompt"
 import { SearchToggle } from "@/components/settings/SearchToggle"
-import { ImageAttach } from "@/components/attachments/ImageAttach"
 import { useChat } from "@/hooks/useChat"
 import { useConversations } from "@/hooks/useConversations"
 import { useHealth } from "@/hooks/useHealth"
@@ -18,7 +17,6 @@ function ChatLayout() {
   const [model, setModel] = useState("glm-5.1:cloud")
   const [systemPrompt, setSystemPrompt] = useState<string | null>(null)
   const [searchEnabled, setSearchEnabled] = useState(false)
-  const [images, setImages] = useState<string[]>([])
   const { theme, toggleTheme } = useTheme()
 
   const handleNewChat = async () => {
@@ -34,7 +32,6 @@ function ChatLayout() {
       enableSearch: searchEnabled,
       imageUrls: imageUrls ?? undefined,
     })
-    setImages([])
   }
 
   return (
@@ -88,12 +85,6 @@ function ChatLayout() {
           prompt={systemPrompt}
           onPromptChange={setSystemPrompt}
         />
-
-        {images.length > 0 && (
-          <div className="border-b border-border px-4 py-2">
-            <ImageAttach images={images} onImagesChange={setImages} />
-          </div>
-        )}
 
         <ChatView messages={messages} isStreaming={isStreaming} isLoading={isLoading} />
         <ChatInput onSend={handleSend} disabled={isStreaming} />
