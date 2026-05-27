@@ -3,11 +3,12 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import init_db
+from app.routers import chat, conversations, models, search
 
 
 @asynccontextmanager
@@ -25,17 +26,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# API routes will be registered here
-# app.include_router(chat.router, prefix="/api")
-# app.include_router(conversations.router, prefix="/api")
+
+@app.exception_handler(Exception)
+async def global_error_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"error": "internal_error", "detail": str(exc)},
+    )
+
+
+app.include_router(chat.router)
+app.include_router(conversations.router)
+app.include_router(models.router)
+app.include_router(search.router)
 
 
 @app.get("/api/health")
 async def health_check():
-    return {"status": "ok"}
+    from app.services.ollama import is_reachable
+
+    ollama_ok = await is_reachable()
+    searxng_ok = False
+    try:
+        from app.services.search import search as search_web
+        await search_web("test")
+        searxng_ok = True
+    except Exception:
+        pass
+    return {"status": "ok", "ollama": ollama_ok, "searxng": searxng_ok}
 
 
-# Serve frontend static assets (JS, CSS, images)
 frontend_dist = Path(settings.frontend_dist)
 if frontend_dist.is_dir():
     app.mount("/assets", StaticFiles(directory=frontend_dist / "assets"), name="assets")
