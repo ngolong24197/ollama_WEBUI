@@ -9,8 +9,15 @@ function generateId() {
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [conversationId, setConversationId] = useState<number | null>(null)
+  const [canRetry, setCanRetry] = useState(false)
+  const lastRequestRef = useRef<{
+    content: string
+    model: string
+    options?: { systemPrompt?: string; imageUrls?: string[]; enableSearch?: boolean }
+  } | null>(null)
   const streamingRef = useRef<string>("")
 
   const sendMessage = useCallback(
@@ -25,7 +32,10 @@ export function useChat() {
     ) => {
       setError(null)
       setIsStreaming(true)
+      setIsLoading(true)
+      setCanRetry(false)
       streamingRef.current = ""
+      lastRequestRef.current = { content, model, options }
 
       const userMessage: Message = {
         id: generateId(),
@@ -85,11 +95,13 @@ export function useChat() {
           },
           (errMsg) => {
             setError(errMsg)
+            setCanRetry(true)
           }
         )
 
         if (streamingRef.current === "" && !error) {
           setError("No response received. Please try again.")
+          setCanRetry(true)
         }
       } catch (err) {
         if (err instanceof ApiError) {
@@ -97,25 +109,38 @@ export function useChat() {
         } else {
           setError("An unexpected error occurred.")
         }
+        setCanRetry(true)
       } finally {
         setIsStreaming(false)
+        setIsLoading(false)
       }
     },
     [conversationId, error]
   )
 
+  const retry = useCallback(() => {
+    const last = lastRequestRef.current
+    if (!last) return
+    setMessages((prev) => prev.slice(0, -1))
+    sendMessage(last.content, last.model, last.options)
+  }, [sendMessage])
+
   const clearMessages = useCallback(() => {
     setMessages([])
     setConversationId(null)
     setError(null)
+    setCanRetry(false)
   }, [])
 
   return {
     messages,
     isStreaming,
+    isLoading,
     error,
+    canRetry,
     conversationId,
     sendMessage,
+    retry,
     clearMessages,
     setConversationId,
   }

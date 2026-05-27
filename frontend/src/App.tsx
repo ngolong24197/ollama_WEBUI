@@ -9,10 +9,12 @@ import { SearchToggle } from "@/components/settings/SearchToggle"
 import { ImageAttach } from "@/components/attachments/ImageAttach"
 import { useChat } from "@/hooks/useChat"
 import { useConversations } from "@/hooks/useConversations"
+import { useHealth } from "@/hooks/useHealth"
 
 function ChatLayout() {
-  const { messages, isStreaming, error, sendMessage, conversationId, setConversationId } = useChat()
+  const { messages, isStreaming, isLoading, error, canRetry, sendMessage, retry, conversationId, setConversationId } = useChat()
   const { conversations, addConversation, removeConversation } = useConversations()
+  const { status: health } = useHealth()
   const [model, setModel] = useState("llama3.2")
   const [systemPrompt, setSystemPrompt] = useState<string | null>(null)
   const [searchEnabled, setSearchEnabled] = useState(false)
@@ -48,6 +50,14 @@ function ChatLayout() {
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border px-4 py-3">
           <h1 className="text-lg font-semibold">Ollama Chat UI</h1>
+          <div className="flex items-center gap-2 text-xs">
+            <span className={health?.ollama ? "text-green-500" : "text-red-500"}>
+              Ollama {health?.ollama ? "connected" : "offline"}
+            </span>
+            <span className={health?.searxng ? "text-green-500" : "text-yellow-500"}>
+              Search {health?.searxng ? "available" : "unavailable"}
+            </span>
+          </div>
           <div className="flex items-center gap-3">
             <ModelInput model={model} onModelChange={setModel} />
             <SearchToggle enabled={searchEnabled} onToggle={setSearchEnabled} />
@@ -61,8 +71,16 @@ function ChatLayout() {
         </header>
 
         {error && (
-          <div className="bg-destructive/10 border-b border-destructive/30 px-4 py-2 text-sm text-destructive">
-            {error}
+          <div className="flex items-center justify-between bg-destructive/10 border-b border-destructive/30 px-4 py-2">
+            <span className="text-sm text-destructive">{error}</span>
+            {canRetry && (
+              <button
+                onClick={retry}
+                className="text-sm font-medium text-destructive underline hover:no-underline"
+              >
+                Retry
+              </button>
+            )}
           </div>
         )}
 
@@ -77,7 +95,7 @@ function ChatLayout() {
           </div>
         )}
 
-        <ChatView messages={messages} isStreaming={isStreaming} />
+        <ChatView messages={messages} isStreaming={isStreaming} isLoading={isLoading} />
         <ChatInput onSend={handleSend} disabled={isStreaming} />
       </div>
     </div>
