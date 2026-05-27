@@ -45,6 +45,7 @@ export function useChat() {
         promptTokens: 0,
         completionTokens: 0,
         imageUrls: options?.imageUrls ?? null,
+        searchEnabled: options?.enableSearch,
         createdAt: new Date().toISOString(),
       }
       setMessages((prev) => [...prev, userMessage])
@@ -57,6 +58,7 @@ export function useChat() {
         promptTokens: 0,
         completionTokens: 0,
         imageUrls: null,
+        searchEnabled: options?.enableSearch,
         createdAt: new Date().toISOString(),
       }
       setMessages((prev) => [...prev, assistantMessage])

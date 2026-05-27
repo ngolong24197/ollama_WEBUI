@@ -6,6 +6,7 @@ export interface Message {
   promptTokens: number
   completionTokens: number
   imageUrls: string[] | null
+  searchEnabled?: boolean
   createdAt: string
 }
 

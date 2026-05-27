@@ -15,7 +15,7 @@ function ChatLayout() {
   const { messages, isStreaming, isLoading, error, canRetry, sendMessage, retry, conversationId, setConversationId } = useChat()
   const { conversations, addConversation, removeConversation } = useConversations()
   const { status: health } = useHealth()
-  const [model, setModel] = useState("llama3.2")
+  const [model, setModel] = useState("glm-5.1:cloud")
   const [systemPrompt, setSystemPrompt] = useState<string | null>(null)
   const [searchEnabled, setSearchEnabled] = useState(false)
   const [images, setImages] = useState<string[]>([])
