@@ -102,7 +102,8 @@ export async function streamChat(
   request: ChatRequest,
   onToken: (text: string) => void,
   onDone: (tokenCount: TokenCount) => void,
-  onError: (error: string) => void
+  onError: (error: string) => void,
+  onConversationId?: (id: number) => void
 ): Promise<void> {
   const response = await fetch(`${API_BASE}/chat`, {
     method: "POST",
@@ -145,6 +146,11 @@ export async function streamChat(
             case "done": {
               const count: TokenCount = JSON.parse(event.data)
               onDone(count)
+              break
+            }
+            case "conversation_id": {
+              const id = Number(event.data)
+              if (!isNaN(id) && onConversationId) onConversationId(id)
               break
             }
             case "error":

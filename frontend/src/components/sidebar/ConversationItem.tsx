@@ -7,6 +7,7 @@ interface ConversationItemProps {
   isActive: boolean
   onSelect: () => void
   onDelete: () => void
+  collapsed?: boolean
 }
 
 export function ConversationItem({
@@ -14,7 +15,24 @@ export function ConversationItem({
   isActive,
   onSelect,
   onDelete,
+  collapsed,
 }: ConversationItemProps) {
+  if (collapsed) {
+    return (
+      <button
+        onClick={onSelect}
+        className={cn(
+          "flex w-full justify-center rounded-md p-2 text-sm",
+          "transition-colors hover:bg-accent",
+          isActive && "bg-accent"
+        )}
+        title={`${conversation.title} (${conversation.model})`}
+      >
+        <span className="truncate text-xs">{(conversation.title || "U")[0]}</span>
+      </button>
+    )
+  }
+
   return (
     <button
       onClick={onSelect}

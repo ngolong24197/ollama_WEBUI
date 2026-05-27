@@ -120,9 +120,10 @@ async def process_chat(
 
     # --- ensure conversation exists ---
     conversation_id = await _ensure_conversation(conversation_id, model, system_prompt)
+    yield {"type": "conversation_id", "data": str(conversation_id)}
 
     # --- build message list ---
-    history = await _load_history(conversation_id) if conversation_id else []
+    history = await _load_history(conversation_id)
     messages: list[dict] = []
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
