@@ -291,6 +291,13 @@ cd frontend && npm run test -- --coverage
 - **Composition over duplication** — if similar UI appears in 2+ places, make it a shared component or hook
 - **Single responsibility** — each file does one thing; each component renders one concern
 
+## Git Workflow
+
+- **Remote**: `https://github.com/ngolong24197/ollama_WEBUI`
+- **Branching**: Each feature/phase gets its own branch (`feature/<name>`)
+- **PRs**: Push branch → open PR → user reviews → merge to `main`
+- **Never push directly to `main`** — always go through a PR
+
 ## Docker Architecture
 
 The app runs as a single Docker container (FastAPI serves the built React frontend as static files). SearXNG runs as a separate container. Ollama runs on the host machine (not containerized — users manage it separately).
