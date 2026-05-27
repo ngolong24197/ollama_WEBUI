@@ -247,6 +247,17 @@ cd frontend && npm run test -- --coverage
 - Provide SearXNG Docker setup instructions in README
 - FastAPI serves the built frontend as static files — single container, no separate nginx
 - Docker Compose starts everything with one command
+- **Error handling and fallbacks for every external call:**
+  - Ollama unreachable → show "Ollama is not running" with setup hint, don't crash
+  - Model not found → show available models list, let user pick or retype
+  - SearXNG unreachable → disable search toggle with tooltip explaining why, proceed without search
+  - SearXNG returns no results → inform user "no results found", continue conversation normally
+  - Image too large or unsupported format → show error inline, don't silently drop it
+  - Network timeout → retry once with backoff, then show error message
+  - SSE stream interrupted → show partial response + "stream ended unexpectedly" notice, allow retry
+  - SQLite write failure → log error, show "couldn't save message" notice, don't lose the displayed message
+  - Every API endpoint returns structured error JSON with `{"error": "type", "detail": "message"}`
+  - Frontend never shows raw error objects to the user — always wrap in human-readable messages
 
 ### Ask first
 - Adding new npm/pip dependencies
