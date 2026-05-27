@@ -11,7 +11,14 @@ services:
       - chat_data:/app/data
     restart: unless-stopped
     depends_on:
-      - searxng
+      searxng:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   searxng:
     image: searxng/searxng:latest
@@ -20,6 +27,11 @@ services:
     volumes:
       - searxng_data:/etc/searxng
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
   chat_data:
