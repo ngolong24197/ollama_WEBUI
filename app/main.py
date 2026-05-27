@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import init_db
-from app.routers import chat, conversations, models, search
+from app.routers import chat, conversations, models, search, export
 
 
 @asynccontextmanager
@@ -39,6 +39,7 @@ app.include_router(chat.router)
 app.include_router(conversations.router)
 app.include_router(models.router)
 app.include_router(search.router)
+app.include_router(export.router)
 
 
 @app.get("/api/health")
