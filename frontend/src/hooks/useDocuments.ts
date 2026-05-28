@@ -1,15 +1,13 @@
 import { useState, useCallback } from "react"
 import {
-  analyzeDocument,
   uploadDocument,
   listKnowledgeSources,
   deleteKnowledgeSource,
 } from "@/lib/api"
-import type { AnalyzeFile, KnowledgeSourceResponse } from "@/types"
+import type { KnowledgeSourceResponse } from "@/types"
 
 export function useDocuments() {
   const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSourceResponse[]>([])
-  const [analyzeFiles, setAnalyzeFiles] = useState<AnalyzeFile[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -22,25 +20,7 @@ export function useDocuments() {
     }
   }, [])
 
-  const analyzeFile = useCallback(async (file: File) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const result = await analyzeDocument(file)
-      if (result.text.startsWith("Failed") || result.text.startsWith("Unsupported")) {
-        setError(result.text)
-        return
-      }
-      const newFile: AnalyzeFile = { name: result.file_name, text: result.text }
-      setAnalyzeFiles((prev) => [...prev, newFile])
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to analyze document")
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  const uploadToKnowledge = useCallback(async (file: File) => {
+  const upload = useCallback(async (file: File) => {
     setLoading(true)
     setError(null)
     try {
@@ -64,25 +44,13 @@ export function useDocuments() {
     }
   }, [])
 
-  const removeAnalyzeFile = useCallback((name: string) => {
-    setAnalyzeFiles((prev) => prev.filter((f) => f.name !== name))
-  }, [])
-
-  const clearAnalyzeFiles = useCallback(() => {
-    setAnalyzeFiles([])
-  }, [])
-
   return {
     knowledgeSources,
-    analyzeFiles,
     loading,
     error,
     fetchSources,
-    analyzeFile,
-    uploadToKnowledge,
+    uploadDocument: upload,
     removeSource,
-    removeAnalyzeFile,
-    clearAnalyzeFiles,
     setError,
   }
 }

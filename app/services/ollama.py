@@ -8,8 +8,8 @@ import httpx
 from app.config import settings
 
 
-async def list_models() -> list[str]:
-    """Return a list of available model names from Ollama."""
+async def list_models() -> list[dict]:
+    """Return a list of available models from Ollama."""
     async with httpx.AsyncClient() as client:
         try:
             resp = await client.get(f"{settings.ollama_url}/api/tags", timeout=10.0)
@@ -17,7 +17,10 @@ async def list_models() -> list[str]:
         except httpx.ConnectError:
             return []
         data = resp.json()
-        return [m["name"] for m in data.get("models", [])]
+        return [
+            {"name": m["name"], "modified_at": m.get("modified_at", ""), "size": m.get("size", 0)}
+            for m in data.get("models", [])
+        ]
 
 
 async def is_reachable() -> bool:
@@ -54,11 +57,12 @@ async def stream_chat(
             ) as resp:
                 if resp.status_code == 404:
                     available = await list_models()
+                    available_names = [m["name"] for m in available]
                     yield {
                         "type": "error",
                         "data": (
                             f"Model '{model}' not found. Available models: "
-                            f"{', '.join(available) if available else 'none'}"
+                            f"{', '.join(available_names) if available_names else 'none'}"
                         ),
                     }
                     return

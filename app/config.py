@@ -15,8 +15,10 @@ class Settings(BaseSettings):
     stream_timeout_seconds: int = 300
 
     embedding_model: str = "nomic-embed-text"
-    chunk_size: int = 500
-    chunk_overlap: int = 50
+    default_chat_model: str = "llama3.2"
+    chunk_size: int = 2000
+    chunk_overlap: int = 256
+    top_k: int = 5
 
     frontend_dist: str = "frontend/dist"
 

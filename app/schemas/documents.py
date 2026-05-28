@@ -2,25 +2,22 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel
+from app.schemas.base import CamelModel
 
 
-class DocumentUploadResponse(BaseModel):
+class DocumentUploadResponse(CamelModel):
     id: int
     name: str
     file_type: str
     chunk_count: int
+    summary: str | None = None
     created_at: datetime
 
 
-class AnalyzeResponse(BaseModel):
-    text: str
-    file_name: str
-
-
-class KnowledgeSourceResponse(BaseModel):
+class KnowledgeSourceResponse(CamelModel):
     id: int
     name: str
     file_type: str
     chunk_count: int
+    summary: str | None = None
     created_at: datetime

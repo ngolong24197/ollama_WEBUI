@@ -22,8 +22,6 @@ async def stream_chat(request: ChatRequest, req: Request):
                 system_prompt=request.system_prompt,
                 image_urls=request.image_urls,
                 enable_search=request.enable_search,
-                analysis_text=request.analysis_text,
-                analysis_file_name=request.analysis_file_name,
                 knowledge_source_ids=request.knowledge_source_ids,
             ):
                 yield f"data: {json.dumps(event)}\n\n"

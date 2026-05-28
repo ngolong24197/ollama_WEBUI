@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from app.schemas.base import CamelModel
 
 
-class ErrorResponse(BaseModel):
+class ErrorResponse(CamelModel):
     error: str
     detail: str
