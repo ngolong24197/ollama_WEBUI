@@ -11,7 +11,7 @@ export function useHealth() {
       const result = await checkHealth()
       setStatus(result)
     } catch {
-      setStatus({ status: "error", ollama: false, searxng: false })
+      setStatus({ status: "error", ollama: false, searxng: false, embedding_model: false })
     } finally {
       setLoading(false)
     }

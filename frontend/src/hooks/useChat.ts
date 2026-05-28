@@ -6,6 +6,15 @@ function generateId() {
   return Math.random().toString(36).slice(2, 10)
 }
 
+export interface SendMessageOptions {
+  systemPrompt?: string
+  imageUrls?: string[]
+  enableSearch?: boolean
+  analysisText?: string
+  analysisFileName?: string
+  knowledgeSourceIds?: number[]
+}
+
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
@@ -16,7 +25,7 @@ export function useChat() {
   const lastRequestRef = useRef<{
     content: string
     model: string
-    options?: { systemPrompt?: string; imageUrls?: string[]; enableSearch?: boolean }
+    options?: SendMessageOptions
   } | null>(null)
   const streamingRef = useRef<string>("")
 
@@ -24,11 +33,7 @@ export function useChat() {
     async (
       content: string,
       model: string,
-      options?: {
-        systemPrompt?: string
-        imageUrls?: string[]
-        enableSearch?: boolean
-      }
+      options?: SendMessageOptions
     ) => {
       setError(null)
       setIsStreaming(true)
@@ -72,6 +77,9 @@ export function useChat() {
             systemPrompt: options?.systemPrompt,
             imageUrls: options?.imageUrls,
             enableSearch: options?.enableSearch,
+            analysisText: options?.analysisText,
+            analysisFileName: options?.analysisFileName,
+            knowledgeSourceIds: options?.knowledgeSourceIds,
           },
           (token) => {
             streamingRef.current += token

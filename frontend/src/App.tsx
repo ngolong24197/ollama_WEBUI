@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ThemeProvider, useTheme } from "@/components/shared/ThemeProvider"
 import { ChatView } from "@/components/chat/ChatView"
 import { ChatInput } from "@/components/chat/ChatInput"
@@ -7,17 +7,35 @@ import { ModelInput } from "@/components/settings/ModelInput"
 import { SystemPrompt } from "@/components/settings/SystemPrompt"
 import { SearchToggle } from "@/components/settings/SearchToggle"
 import { useChat } from "@/hooks/useChat"
+import type { SendMessageOptions } from "@/hooks/useChat"
 import { useConversations } from "@/hooks/useConversations"
 import { useHealth } from "@/hooks/useHealth"
+import { useDocuments } from "@/hooks/useDocuments"
 
 function ChatLayout() {
   const { messages, isStreaming, isLoading, error, canRetry, sendMessage, retry, conversationId, setConversationId } = useChat()
   const { conversations, addConversation, removeConversation } = useConversations()
   const { status: health } = useHealth()
+  const {
+    knowledgeSources,
+    analyzeFiles,
+    loading: docLoading,
+    error: docError,
+    fetchSources,
+    analyzeFile,
+    uploadToKnowledge,
+    removeSource,
+    removeAnalyzeFile,
+  } = useDocuments()
+  const [selectedSourceIds, setSelectedSourceIds] = useState<number[]>([])
   const [model, setModel] = useState("glm-5.1:cloud")
   const [systemPrompt, setSystemPrompt] = useState<string | null>(null)
   const [searchEnabled, setSearchEnabled] = useState(false)
   const { theme, toggleTheme } = useTheme()
+
+  useEffect(() => {
+    fetchSources()
+  }, [fetchSources])
 
   const handleNewChat = async () => {
     const conv = await addConversation("New Chat", model, systemPrompt ?? undefined)
@@ -26,12 +44,21 @@ function ChatLayout() {
     }
   }
 
-  const handleSend = (content: string, imageUrls?: string[]) => {
+  const handleSend = (content: string, options?: SendMessageOptions) => {
     sendMessage(content, model, {
       systemPrompt: systemPrompt ?? undefined,
       enableSearch: searchEnabled,
-      imageUrls: imageUrls ?? undefined,
+      imageUrls: options?.imageUrls,
+      analysisText: options?.analysisText,
+      analysisFileName: options?.analysisFileName,
+      knowledgeSourceIds: options?.knowledgeSourceIds,
     })
+  }
+
+  const toggleSource = (id: number) => {
+    setSelectedSourceIds((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    )
   }
 
   return (
@@ -87,7 +114,20 @@ function ChatLayout() {
         />
 
         <ChatView messages={messages} isStreaming={isStreaming} isLoading={isLoading} />
-        <ChatInput onSend={handleSend} disabled={isStreaming} />
+        <ChatInput
+          onSend={handleSend}
+          disabled={isStreaming}
+          analyzeFiles={analyzeFiles}
+          knowledgeSources={knowledgeSources}
+          selectedSourceIds={selectedSourceIds}
+          onAnalyzeFile={analyzeFile}
+          onUploadToKnowledge={uploadToKnowledge}
+          onRemoveAnalyzeFile={removeAnalyzeFile}
+          onRemoveKnowledgeSource={removeSource}
+          onToggleSource={toggleSource}
+          docLoading={docLoading}
+          docError={docError}
+        />
       </div>
     </div>
   )

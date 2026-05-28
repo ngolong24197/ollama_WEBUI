@@ -8,6 +8,9 @@ class ChatRequest(BaseModel):
     system_prompt: str | None = None
     image_urls: list[str] | None = None
     enable_search: bool = False
+    analysis_text: str | None = None
+    analysis_file_name: str | None = None
+    knowledge_source_ids: list[int] | None = None
 
 
 class TokenCount(BaseModel):

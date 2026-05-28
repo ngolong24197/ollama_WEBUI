@@ -11,7 +11,12 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+aiosqlite:///data/chat.db"
 
     max_image_size_mb: int = 10
+    max_file_size_mb: int = 20
     stream_timeout_seconds: int = 300
+
+    embedding_model: str = "nomic-embed-text"
+    chunk_size: int = 500
+    chunk_overlap: int = 50
 
     frontend_dist: str = "frontend/dist"
 

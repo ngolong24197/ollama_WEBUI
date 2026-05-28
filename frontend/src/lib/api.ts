@@ -3,6 +3,7 @@ import type {
   Conversation,
   ErrorResponse,
   HealthStatus,
+  KnowledgeSourceResponse,
   Message,
   OllamaModel,
   SearchResult,
@@ -168,3 +169,42 @@ export async function streamChat(
 }
 
 export { ApiError }
+
+export async function analyzeDocument(file: File): Promise<{ text: string; file_name: string }> {
+  const formData = new FormData()
+  formData.append("file", file)
+  const response = await fetch(`${API_BASE}/documents/analyze`, {
+    method: "POST",
+    body: formData,
+  })
+  if (!response.ok) {
+    await parseError(response)
+  }
+  return response.json()
+}
+
+export async function uploadDocument(file: File): Promise<KnowledgeSourceResponse> {
+  const formData = new FormData()
+  formData.append("file", file)
+  const response = await fetch(`${API_BASE}/documents/upload`, {
+    method: "POST",
+    body: formData,
+  })
+  if (!response.ok) {
+    await parseError(response)
+  }
+  return response.json()
+}
+
+export async function listKnowledgeSources(): Promise<KnowledgeSourceResponse[]> {
+  return fetchJson("/documents/knowledge-sources")
+}
+
+export async function deleteKnowledgeSource(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE}/documents/knowledge-sources/${id}`, {
+    method: "DELETE",
+  })
+  if (!response.ok && response.status !== 204) {
+    await parseError(response)
+  }
+}
