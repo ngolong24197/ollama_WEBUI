@@ -18,14 +18,11 @@ function ChatLayout() {
   const { status: health } = useHealth()
   const {
     knowledgeSources,
-    analyzeFiles,
     loading: docLoading,
     error: docError,
     fetchSources,
-    analyzeFile,
-    uploadToKnowledge,
+    uploadDocument,
     removeSource,
-    removeAnalyzeFile,
   } = useDocuments()
   const [selectedSourceIds, setSelectedSourceIds] = useState<number[]>([])
   const [model, setModel] = useState("glm-5.1:cloud")
@@ -50,8 +47,6 @@ function ChatLayout() {
       systemPrompt: systemPrompt ?? undefined,
       enableSearch: searchEnabled,
       imageUrls: options?.imageUrls,
-      analysisText: options?.analysisText,
-      analysisFileName: options?.analysisFileName,
       knowledgeSourceIds: options?.knowledgeSourceIds,
     })
   }
@@ -118,12 +113,9 @@ function ChatLayout() {
         <ChatInput
           onSend={handleSend}
           disabled={isStreaming}
-          analyzeFiles={analyzeFiles}
           knowledgeSources={knowledgeSources}
           selectedSourceIds={selectedSourceIds}
-          onAnalyzeFile={analyzeFile}
-          onUploadToKnowledge={uploadToKnowledge}
-          onRemoveAnalyzeFile={removeAnalyzeFile}
+          onUploadDocument={uploadDocument}
           onRemoveKnowledgeSource={removeSource}
           onToggleSource={toggleSource}
           docLoading={docLoading}

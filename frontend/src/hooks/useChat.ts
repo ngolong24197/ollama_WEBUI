@@ -10,8 +10,6 @@ export interface SendMessageOptions {
   systemPrompt?: string
   imageUrls?: string[]
   enableSearch?: boolean
-  analysisText?: string
-  analysisFileName?: string
   knowledgeSourceIds?: number[]
 }
 
@@ -104,8 +102,6 @@ export function useChat() {
             systemPrompt: options?.systemPrompt,
             imageUrls: options?.imageUrls,
             enableSearch: options?.enableSearch,
-            analysisText: options?.analysisText,
-            analysisFileName: options?.analysisFileName,
             knowledgeSourceIds: options?.knowledgeSourceIds,
           },
           (token) => {

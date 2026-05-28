@@ -39,16 +39,13 @@ _SEARCH_SYSTEM_PROMPT = (
     "If the results don't contain relevant information, say so honestly and answer from your training data with a caveat."
 )
 
-_ANALYSIS_SYSTEM_PROMPT = (
-    "The user has provided a document for analysis. Answer their question based "
-    "on the document content. If the answer isn't in the document, say so honestly."
-)
-
 _RAG_SYSTEM_PROMPT = (
-    "The [Retrieved Context] block contains relevant excerpts from the user's "
+    "The context blocks contain document summaries and relevant excerpts from the user's "
     "knowledge sources. Use this information to answer their question. "
-    "Cite the source name when possible. If the context doesn't contain relevant "
-    "information, say so honestly and answer from your training data with a caveat."
+    "Always cite your sources by document name when drawing from the retrieved context. "
+    "If the context includes page or section references, include those in your citation. "
+    "If the context doesn't contain relevant information, say so honestly and answer from "
+    "your training data with a caveat that you are not citing the uploaded documents."
 )
 
 
@@ -132,12 +129,15 @@ async def process_chat(
     system_prompt: str | None = None,
     image_urls: list[str] | None = None,
     enable_search: bool = False,
-    analysis_text: str | None = None,
-    analysis_file_name: str | None = None,
     knowledge_source_ids: list[int] | None = None,
 ) -> AsyncGenerator[dict, None]:
-    """Orchestrate a chat request: search, RAG, analysis, stream, and persist."""
-    # --- optional web search ---
+    """Orchestrate a chat request: search, RAG, stream, and persist."""
+    # --- default prompt when only a knowledge source is attached ---
+    if not message.strip():
+        if knowledge_source_ids:
+            message = "What can you tell me from the knowledge sources?"
+        else:
+            message = "Hello"
     effective_message = message
     results: list[dict[str, str]] | None = None
     if enable_search:
@@ -148,11 +148,6 @@ async def process_chat(
                 effective_message = f"{context}\n\n{message}"
         except RuntimeError as exc:
             logger.warning("Search failed: %s", exc)
-
-    # --- optional document analysis ---
-    if analysis_text:
-        doc_block = f"[Document: {analysis_file_name or 'uploaded file'}]\n{analysis_text}\n[End of Document]"
-        effective_message = f"{doc_block}\n\n{message}"
 
     # --- optional RAG retrieval ---
     rag_context = ""
@@ -176,8 +171,6 @@ async def process_chat(
         messages.append({"role": "system", "content": system_prompt})
     if enable_search and results:
         messages.append({"role": "system", "content": _SEARCH_SYSTEM_PROMPT})
-    if analysis_text:
-        messages.append({"role": "system", "content": _ANALYSIS_SYSTEM_PROMPT})
     if knowledge_source_ids and rag_context:
         messages.append({"role": "system", "content": _RAG_SYSTEM_PROMPT})
     messages.extend(history)
@@ -187,8 +180,8 @@ async def process_chat(
     messages.append(user_msg)
 
     logger.info(
-        "Sending %d messages to model=%s (search=%s, analysis=%s, rag=%s)",
-        len(messages), model, enable_search, bool(analysis_text), bool(knowledge_source_ids),
+        "Sending %d messages to model=%s (search=%s, rag=%s)",
+        len(messages), model, enable_search, bool(knowledge_source_ids),
     )
 
     # --- stream from Ollama ---

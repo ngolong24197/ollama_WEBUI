@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from app.schemas.base import CamelModel
 
 
-class OllamaModelResponse(BaseModel):
+class OllamaModelResponse(CamelModel):
     name: str
     modified_at: str
     size: int

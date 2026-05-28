@@ -1,21 +1,23 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import CamelModel
 
 
-class ConversationCreate(BaseModel):
+class ConversationCreate(CamelModel):
     title: str = Field(default="New Chat", max_length=500)
     model: str = Field(..., min_length=1, max_length=100)
     system_prompt: str | None = None
 
 
-class ConversationUpdate(BaseModel):
+class ConversationUpdate(CamelModel):
     title: str | None = None
     model: str | None = None
     system_prompt: str | None = None
 
 
-class ConversationResponse(BaseModel):
+class ConversationResponse(CamelModel):
     id: int
     title: str
     model: str
@@ -25,7 +27,7 @@ class ConversationResponse(BaseModel):
     updated_at: datetime
 
 
-class MessageResponse(BaseModel):
+class MessageResponse(CamelModel):
     id: int
     conversation_id: int
     role: str

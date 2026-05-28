@@ -52,7 +52,7 @@ async def update_conversation(
     conv = await db.get(Conversation, conversation_id)
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
-    for field, value in data.model_dump(exclude_unset=True).items():
+    for field, value in data.model_dump(exclude_unset=True, by_alias=False).items():
         setattr(conv, field, value)
     await db.commit()
     await db.refresh(conv)

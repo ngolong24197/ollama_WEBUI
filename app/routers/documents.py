@@ -1,4 +1,4 @@
-"""Document upload, analysis, and knowledge source endpoints."""
+"""Document upload and knowledge source endpoints."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ import logging
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from app.config import settings
-from app.schemas.documents import AnalyzeResponse, DocumentUploadResponse, KnowledgeSourceResponse
-from app.services.extraction import extract_text, get_file_type
+from app.schemas.documents import DocumentUploadResponse, KnowledgeSourceResponse
+from app.services.extraction import get_file_type
 from app.services.rag import process_document_for_rag
 from app.services.embeddings import check_embedding_model
 
@@ -19,34 +19,9 @@ router = APIRouter(prefix="/api/documents", tags=["documents"])
 SUPPORTED_EXTENSIONS = {"pdf", "docx", "txt"}
 
 
-@router.post("/analyze", response_model=AnalyzeResponse)
-async def analyze_document(file: UploadFile = File(...)):
-    """Extract text from an uploaded file for one-shot analysis. No persistence."""
-    filename = file.filename or "unknown"
-    file_type = get_file_type(filename)
-    if not file_type:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported file type. Supported: {', '.join(sorted(SUPPORTED_EXTENSIONS))}",
-        )
-
-    file_bytes = await file.read()
-    if len(file_bytes) > settings.max_file_size_mb * 1024 * 1024:
-        raise HTTPException(
-            status_code=413,
-            detail=f"File too large. Maximum size is {settings.max_file_size_mb}MB.",
-        )
-
-    text = extract_text(file_bytes, file_type)
-    if text.startswith("Failed") or text.startswith("Unsupported"):
-        raise HTTPException(status_code=422, detail=text)
-
-    return AnalyzeResponse(text=text, file_name=filename)
-
-
 @router.post("/upload", response_model=DocumentUploadResponse)
 async def upload_document(file: UploadFile = File(...)):
-    """Upload a file as a knowledge source for RAG. Extract, chunk, embed, store."""
+    """Upload a document as a knowledge source. Extract, summarize, chunk, embed, store."""
     filename = file.filename or "unknown"
     file_type = get_file_type(filename)
     if not file_type:
@@ -83,6 +58,7 @@ async def upload_document(file: UploadFile = File(...)):
         name=source.name,
         file_type=source.file_type,
         chunk_count=source.chunk_count,
+        summary=source.summary,
         created_at=source.created_at,
     )
 
@@ -106,6 +82,7 @@ async def list_knowledge_sources():
             name=s.name,
             file_type=s.file_type,
             chunk_count=s.chunk_count,
+            summary=s.summary,
             created_at=s.created_at,
         )
         for s in sources

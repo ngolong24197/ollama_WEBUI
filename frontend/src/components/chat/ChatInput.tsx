@@ -2,22 +2,17 @@ import { useState, useCallback, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { ImageAttach } from "@/components/attachments/ImageAttach"
 import { FileAttach } from "@/components/attachments/FileAttach"
-import type { AnalyzeFile, KnowledgeSourceResponse } from "@/types"
+import type { KnowledgeSourceResponse } from "@/types"
 
 interface ChatInputProps {
   onSend: (message: string, options?: {
     imageUrls?: string[]
-    analysisText?: string
-    analysisFileName?: string
     knowledgeSourceIds?: number[]
   }) => void
   disabled?: boolean
-  analyzeFiles: AnalyzeFile[]
   knowledgeSources: KnowledgeSourceResponse[]
   selectedSourceIds: number[]
-  onAnalyzeFile: (file: File) => void
-  onUploadToKnowledge: (file: File) => Promise<KnowledgeSourceResponse | undefined>
-  onRemoveAnalyzeFile: (name: string) => void
+  onUploadDocument: (file: File) => Promise<KnowledgeSourceResponse | undefined>
   onRemoveKnowledgeSource: (id: number) => void
   onToggleSource: (id: number) => void
   docLoading: boolean
@@ -27,12 +22,9 @@ interface ChatInputProps {
 export function ChatInput({
   onSend,
   disabled,
-  analyzeFiles,
   knowledgeSources,
   selectedSourceIds,
-  onAnalyzeFile,
-  onUploadToKnowledge,
-  onRemoveAnalyzeFile,
+  onUploadDocument,
   onRemoveKnowledgeSource,
   onToggleSource,
   docLoading,
@@ -42,32 +34,26 @@ export function ChatInput({
   const [images, setImages] = useState<string[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  const hasAttachments = selectedSourceIds.length > 0 || images.length > 0
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault()
       const trimmed = input.trim()
-      if (!trimmed || disabled) return
+      if ((!trimmed && !hasAttachments) || disabled) return
 
-      const analysisText = analyzeFiles.length > 0
-        ? analyzeFiles.map((f) => `[${f.name}]\n${f.text}`).join("\n\n")
-        : undefined
-      const analysisFileName = analyzeFiles.length > 0
-        ? analyzeFiles.map((f) => f.name).join(", ")
-        : undefined
       const knowledgeSourceIds = selectedSourceIds.length > 0
         ? selectedSourceIds
         : undefined
 
-      onSend(trimmed, {
+      onSend(trimmed || "Please analyze the attached document.", {
         imageUrls: images.length > 0 ? images : undefined,
-        analysisText,
-        analysisFileName,
         knowledgeSourceIds,
       })
       setInput("")
       setImages([])
     },
-    [input, disabled, onSend, images, analyzeFiles, selectedSourceIds]
+    [input, disabled, onSend, images, selectedSourceIds, hasAttachments]
   )
 
   const handleKeyDown = useCallback(
@@ -104,12 +90,9 @@ export function ChatInput({
     <div className="border-t border-border p-4">
       <div className="mx-auto max-w-4xl space-y-2">
         <FileAttach
-          analyzeFiles={analyzeFiles}
           knowledgeSources={knowledgeSources}
           selectedSourceIds={selectedSourceIds}
-          onAnalyzeFile={onAnalyzeFile}
-          onUploadToKnowledge={onUploadToKnowledge}
-          onRemoveAnalyzeFile={onRemoveAnalyzeFile}
+          onUploadDocument={onUploadDocument}
           onRemoveKnowledgeSource={onRemoveKnowledgeSource}
           onToggleSource={onToggleSource}
           loading={docLoading}
@@ -136,7 +119,7 @@ export function ChatInput({
           />
           <button
             type="submit"
-            disabled={disabled || !input.trim()}
+            disabled={disabled || (!input.trim() && !hasAttachments)}
             className={cn(
               "rounded-lg px-4 py-2.5 font-medium text-sm",
               "bg-primary text-primary-foreground",
