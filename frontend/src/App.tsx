@@ -13,7 +13,7 @@ import { useHealth } from "@/hooks/useHealth"
 import { useDocuments } from "@/hooks/useDocuments"
 
 function ChatLayout() {
-  const { messages, isStreaming, isLoading, error, canRetry, sendMessage, retry, conversationId, setConversationId } = useChat()
+  const { messages, isStreaming, isLoading, error, canRetry, sendMessage, retry, conversationId, setConversationId, clearMessages } = useChat()
   const { conversations, addConversation, removeConversation } = useConversations()
   const { status: health } = useHealth()
   const {
@@ -38,6 +38,7 @@ function ChatLayout() {
   }, [fetchSources])
 
   const handleNewChat = async () => {
+    clearMessages()
     const conv = await addConversation("New Chat", model, systemPrompt ?? undefined)
     if (conv) {
       setConversationId(conv.id)

@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef } from "react"
-import { streamChat, ApiError } from "@/lib/api"
+import { useState, useCallback, useRef, useEffect } from "react"
+import { streamChat, getMessages, ApiError } from "@/lib/api"
 import type { Message, TokenCount } from "@/types"
 
 function generateId() {
@@ -28,6 +28,33 @@ export function useChat() {
     options?: SendMessageOptions
   } | null>(null)
   const streamingRef = useRef<string>("")
+  const abortRef = useRef<AbortController | null>(null)
+
+  // Load messages when switching to a different conversation
+  useEffect(() => {
+    if (conversationId === null) {
+      setMessages([])
+      return
+    }
+    let cancelled = false
+    getMessages(conversationId).then((msgs) => {
+      if (!cancelled) {
+        setMessages(msgs)
+      }
+    }).catch(() => {
+      if (!cancelled) {
+        setMessages([])
+      }
+    })
+    return () => { cancelled = true }
+  }, [conversationId])
+
+  // Abort streaming on unmount
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort()
+    }
+  }, [])
 
   const sendMessage = useCallback(
     async (
@@ -139,6 +166,7 @@ export function useChat() {
   }, [sendMessage])
 
   const clearMessages = useCallback(() => {
+    abortRef.current?.abort()
     setMessages([])
     setConversationId(null)
     setError(null)
