@@ -1,26 +1,73 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { ImageAttach } from "@/components/attachments/ImageAttach"
+import { FileAttach } from "@/components/attachments/FileAttach"
+import type { AnalyzeFile, KnowledgeSourceResponse } from "@/types"
 
 interface ChatInputProps {
-  onSend: (message: string, imageUrls?: string[]) => void
+  onSend: (message: string, options?: {
+    imageUrls?: string[]
+    analysisText?: string
+    analysisFileName?: string
+    knowledgeSourceIds?: number[]
+  }) => void
   disabled?: boolean
+  analyzeFiles: AnalyzeFile[]
+  knowledgeSources: KnowledgeSourceResponse[]
+  selectedSourceIds: number[]
+  onAnalyzeFile: (file: File) => void
+  onUploadToKnowledge: (file: File) => Promise<KnowledgeSourceResponse | undefined>
+  onRemoveAnalyzeFile: (name: string) => void
+  onRemoveKnowledgeSource: (id: number) => void
+  onToggleSource: (id: number) => void
+  docLoading: boolean
+  docError: string | null
 }
 
-export function ChatInput({ onSend, disabled }: ChatInputProps) {
+export function ChatInput({
+  onSend,
+  disabled,
+  analyzeFiles,
+  knowledgeSources,
+  selectedSourceIds,
+  onAnalyzeFile,
+  onUploadToKnowledge,
+  onRemoveAnalyzeFile,
+  onRemoveKnowledgeSource,
+  onToggleSource,
+  docLoading,
+  docError,
+}: ChatInputProps) {
   const [input, setInput] = useState("")
   const [images, setImages] = useState<string[]>([])
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault()
       const trimmed = input.trim()
       if (!trimmed || disabled) return
-      onSend(trimmed, images.length > 0 ? images : undefined)
+
+      const analysisText = analyzeFiles.length > 0
+        ? analyzeFiles.map((f) => `[${f.name}]\n${f.text}`).join("\n\n")
+        : undefined
+      const analysisFileName = analyzeFiles.length > 0
+        ? analyzeFiles.map((f) => f.name).join(", ")
+        : undefined
+      const knowledgeSourceIds = selectedSourceIds.length > 0
+        ? selectedSourceIds
+        : undefined
+
+      onSend(trimmed, {
+        imageUrls: images.length > 0 ? images : undefined,
+        analysisText,
+        analysisFileName,
+        knowledgeSourceIds,
+      })
       setInput("")
       setImages([])
     },
-    [input, disabled, onSend, images]
+    [input, disabled, onSend, images, analyzeFiles, selectedSourceIds]
   )
 
   const handleKeyDown = useCallback(
@@ -33,18 +80,50 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
     [handleSubmit]
   )
 
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent) => {
+      const files = e.clipboardData.files
+      if (files.length > 0) {
+        const file = files[0]
+        if (file.type.startsWith("image/")) {
+          e.preventDefault()
+          const reader = new FileReader()
+          reader.onload = () => {
+            if (typeof reader.result === "string") {
+              setImages((prev) => [...prev, reader.result as string])
+            }
+          }
+          reader.readAsDataURL(file)
+        }
+      }
+    },
+    []
+  )
+
   return (
     <div className="border-t border-border p-4">
-      <div className="max-w-4xl mx-auto space-y-2">
-        {images.length > 0 && (
-          <ImageAttach images={images} onImagesChange={setImages} />
-        )}
+      <div className="mx-auto max-w-4xl space-y-2">
+        <FileAttach
+          analyzeFiles={analyzeFiles}
+          knowledgeSources={knowledgeSources}
+          selectedSourceIds={selectedSourceIds}
+          onAnalyzeFile={onAnalyzeFile}
+          onUploadToKnowledge={onUploadToKnowledge}
+          onRemoveAnalyzeFile={onRemoveAnalyzeFile}
+          onRemoveKnowledgeSource={onRemoveKnowledgeSource}
+          onToggleSource={onToggleSource}
+          loading={docLoading}
+          error={docError}
+        />
+        <ImageAttach images={images} onImagesChange={setImages} />
         <form onSubmit={handleSubmit} className="flex gap-2">
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Send a message..."
+            onPaste={handlePaste}
+            placeholder="Send a message... (paste or attach images)"
             disabled={disabled}
             rows={1}
             className={cn(

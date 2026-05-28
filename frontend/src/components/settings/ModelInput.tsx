@@ -56,7 +56,7 @@ export function ModelInput({ model, onModelChange }: ModelInputProps) {
           value={model}
           onChange={handleChange}
           onBlur={handleBlur}
-          placeholder="e.g. llama3.2"
+          placeholder="e.g. glm-5.1:cloud"
           className={cn(
             "w-full rounded-lg border bg-background px-3 py-2 text-sm",
             "placeholder:text-muted-foreground focus:outline-none focus:ring-2",

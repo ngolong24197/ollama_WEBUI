@@ -97,7 +97,11 @@ async def stream_chat(
             "data": "Request timed out. Please try again.",
         }
     except httpx.HTTPStatusError as exc:
-        yield {
-            "type": "error",
-            "data": f"Ollama error: {exc.response.status_code}",
-        }
+        detail = f"Ollama error: {exc.response.status_code}"
+        try:
+            body = exc.response.json()
+            if "error" in body:
+                detail = body["error"]
+        except Exception:
+            pass
+        yield {"type": "error", "data": detail}

@@ -6,6 +6,7 @@ export interface Message {
   promptTokens: number
   completionTokens: number
   imageUrls: string[] | null
+  searchEnabled?: boolean
   createdAt: string
 }
 
@@ -26,6 +27,9 @@ export interface ChatRequest {
   systemPrompt?: string
   imageUrls?: string[]
   enableSearch?: boolean
+  analysisText?: string
+  analysisFileName?: string
+  knowledgeSourceIds?: number[]
 }
 
 export interface SearchRequest {
@@ -58,9 +62,23 @@ export interface HealthStatus {
   status: string
   ollama: boolean
   searxng: boolean
+  embedding_model: boolean
 }
 
 export interface ErrorResponse {
   error: string
   detail: string
+}
+
+export interface AnalyzeFile {
+  name: string
+  text: string
+}
+
+export interface KnowledgeSourceResponse {
+  id: number
+  name: string
+  file_type: string
+  chunk_count: number
+  created_at: string
 }

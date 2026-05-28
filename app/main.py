@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import init_db
-from app.routers import chat, conversations, models, search, export
+from app.routers import chat, conversations, models, search, export, documents
 
 
 @asynccontextmanager
@@ -40,6 +40,7 @@ app.include_router(conversations.router)
 app.include_router(models.router)
 app.include_router(search.router)
 app.include_router(export.router)
+app.include_router(documents.router)
 
 
 @app.get("/api/health")
@@ -64,7 +65,10 @@ async def health_check():
     except Exception:
         pass
 
-    return {"status": "ok", "ollama": ollama_ok, "searxng": searxng_ok}
+    from app.services.embeddings import check_embedding_model
+    embedding_ok = await check_embedding_model()
+
+    return {"status": "ok", "ollama": ollama_ok, "searxng": searxng_ok, "embedding_model": embedding_ok}
 
 
 frontend_dist = Path(settings.frontend_dist)
